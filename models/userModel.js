@@ -1,7 +1,7 @@
 import { model, Schema } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
 
 const user = new Schema({
   name: {
@@ -49,19 +49,20 @@ const user = new Schema({
   otpExpires: Date,
 });
 
-user.pre('save', async function () {
+user.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
   const hashedPassword = await bcrypt.hash(this.password, 10);
   this.password = hashedPassword;
 });
 
 user.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
-}
+};
 
 user.methods.generateToken = function () {
   return jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
-    expiresIn: '15d'
-  })
-}
+    expiresIn: '15d',
+  });
+};
 
-export const User = model('User', user)
+export const User = model('User', user);
