@@ -1,6 +1,11 @@
 import { User } from '../models/userModel.js';
 import { AppError, asyncError } from '../utils/errorClass.js';
-import { cookieOptions, getDataUri, sendToken } from '../utils/features.js';
+import {
+  cookieOptions,
+  getDataUri,
+  sendEmail,
+  sendToken,
+} from '../utils/features.js';
 import cloudinary from 'cloudinary';
 
 export const login = asyncError(async (req, res, next) => {
@@ -134,5 +139,69 @@ export const updatePic = asyncError(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: 'Avatar updated successfully',
+  });
+});
+
+export const forgetPassword = asyncError(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return next(new AppError('Please enter an email address'));
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return next(new AppError('User with this email not found', 404));
+  }
+
+  const OTP = Math.floor(Math.random() * (999999 - 100000) + 100000);
+  const OTP_EXPIRE = 15 * 60 * 1000;
+
+  user.otp = OTP;
+  user.otpExpires = new Date(Date.now() + OTP_EXPIRE);
+
+  await user.save();
+
+  const message = `Your OTP for reseting password is ${OTP}.\nPlease ignore if you haven't requested this.`;
+
+  try {
+    await sendEmail('OTP for reseting Password', user.email, message);
+  } catch (error) {
+    user.otp = null;
+    user.otpExpires = null;
+    await user.save();
+    return next(error);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: `Email sent successfully to ${user.email}`,
+  });
+});
+
+export const resetPassword = asyncError(async (req, res, next) => {
+  const { otp, password } = req.body;
+
+  if (!otp || !password)
+    return next(new AppError('Please Enter OTP & Password'));
+
+  const user = await User.findOne({
+    otp,
+    otpExpires: { $gt: Date.now() },
+  });
+
+  if (!user)
+    return next(new AppError('Incorrect OTP or has been expired.', 400));
+
+  user.password = password;
+  user.otp = undefined;
+  user.otpExpires = undefined;
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Password updated successfully, You can now login.',
   });
 });
