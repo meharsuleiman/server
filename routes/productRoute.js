@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { isAuthenticated } from '../middlewares/IsAuthMiddleware.js';
+import { isAdmin, isAuthenticated } from '../middlewares/IsAuthMiddleware.js';
 import { singleUpload } from '../middlewares/MulterMiddleware.js';
 
 import {
@@ -10,6 +10,7 @@ import {
   deleteCategory,
   deleteProduct,
   deleteProductImage,
+  getAdminProducts,
   getAllCategory,
   getAllProducts,
   getProductDetails,
@@ -19,21 +20,23 @@ import {
 const router = Router();
 
 router.get('/all', getAllProducts);
+router.get('/admin', isAuthenticated, isAdmin, getAdminProducts);
+
 router
   .route('/single/:id')
   .get(getProductDetails)
-  .put(isAuthenticated, updateProduct)
-  .delete(isAuthenticated, deleteProduct);
+  .put(isAuthenticated, isAdmin, updateProduct)
+  .delete(isAuthenticated, isAdmin, deleteProduct);
 
-router.post('/new', isAuthenticated, singleUpload, createProduct);
+router.post('/new', isAuthenticated, isAdmin, singleUpload, createProduct);
 
 router
   .route('/images/:id')
-  .post(isAuthenticated, singleUpload, addProductImage)
-  .delete(isAuthenticated, deleteProductImage);
+  .post(isAuthenticated, isAdmin, singleUpload, addProductImage)
+  .delete(isAuthenticated, isAdmin, deleteProductImage);
 
-router.post('/category', isAuthenticated, addCategory);
+router.post('/category', isAuthenticated, isAdmin, addCategory);
 router.get('/categories', getAllCategory);
-router.delete('/category/:id', isAuthenticated, deleteCategory);
+router.delete('/category/:id', isAuthenticated, isAdmin, deleteCategory);
 
 export default router;
