@@ -4,10 +4,13 @@ import { isAuthenticated } from '../middlewares/IsAuthMiddleware.js';
 import { singleUpload } from '../middlewares/MulterMiddleware.js';
 
 import {
+  addCategory,
   addProductImage,
   createProduct,
+  deleteCategory,
   deleteProduct,
   deleteProductImage,
+  getAllCategory,
   getAllProducts,
   getProductDetails,
   updateProduct,
@@ -28,5 +31,9 @@ router
   .route('/images/:id')
   .post(isAuthenticated, singleUpload, addProductImage)
   .delete(isAuthenticated, deleteProductImage);
+
+router.post('/category', isAuthenticated, addCategory);
+router.get('/categories', getAllCategory);
+router.delete('/category/:id', isAuthenticated, deleteCategory);
 
 export default router;

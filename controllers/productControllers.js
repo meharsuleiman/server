@@ -1,4 +1,5 @@
 import { Product } from '../models/productModel.js';
+import { Category } from '../models/categoryModel.js';
 import { AppError, asyncError } from '../utils/errorClass.js';
 import { getDataUri } from '../utils/features.js';
 import cloudinary from 'cloudinary';
@@ -130,10 +131,51 @@ export const deleteProduct = asyncError(async (req, res, next) => {
     await cloudinary.v2.uploader.destroy(product.images[index].public_id);
   }
 
-  await product.deleteOne({ _id: req.params._id });
-
+  await product.deleteOne({ _id: req.params.id });
   res.status(201).json({
     success: true,
     message: 'Product deleted successfully',
+  });
+});
+
+export const addCategory = asyncError(async (req, res, next) => {
+  const { category } = req.body;
+  await Category.create({ category });
+
+  res.status(201).json({
+    success: true,
+    message: 'Category added successfully',
+  });
+});
+export const getAllCategory = asyncError(async (req, res, next) => {
+  const categories = await Category.find({});
+
+  res.status(200).json({
+    success: true,
+    categories,
+  });
+});
+export const deleteCategory = asyncError(async (req, res, next) => {
+  const id = req.params.id;
+  const category = await Category.findById(id);
+
+  if (!category) {
+    return next(new AppError('Category not found', 404));
+  }
+
+  const products = await Product.find({ category: category._id });
+
+  for (let index = 0; index < products.length; index++) {
+    const product = products[index];
+    product.category = undefined;
+
+    await product.save();
+  }
+
+  await category.deleteOne({ _id: id });
+
+  res.status(200).json({
+    success: true,
+    message: 'category deleted successfully',
   });
 });
