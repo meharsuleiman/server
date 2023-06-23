@@ -4,7 +4,7 @@ export const errorMiddleware = (err, req, res, next) => {
 
   if (req.originalUrl.includes('/api/v1/user') && err.code === 11000) {
     err.message = 'Email already exists';
-    err.code = 409;
+    err.statusCode = 409;
   }
 
   if (
@@ -12,7 +12,12 @@ export const errorMiddleware = (err, req, res, next) => {
     err.code === 11000
   ) {
     err.message = `Duplicate ${Object.keys(err.keyValue)} Entered`;
-    err.code = 409;
+    err.statusCode = 409;
+  }
+
+  if (err.name === 'CastError') {
+    err.message = `Invalid ${err.path}`;
+    err.statusCode = 400;
   }
 
   console.log(err);
