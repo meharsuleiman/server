@@ -30,5 +30,8 @@
     "stripe": "^12.10.0",
     "validator": "^13.9.0",
     "xss-clean": "^0.1.4"
+  },
+  "devDependencies": {
+    "form-data": "^4.0.0"
   }
 }
