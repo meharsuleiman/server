@@ -43,6 +43,13 @@ import { errorMiddleware } from './middlewares/ErrorMiddleware.js';
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/product', productRouter);
 app.use('/api/v1/order', orderRouter);
+app.use('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message:
+      'App is live you can request at {/api/v1/product/all?category=649586ff17fa84b807fed141}',
+  });
+});
 
 // Global Error Handler
 app.use(errorMiddleware);
